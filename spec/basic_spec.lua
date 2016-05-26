@@ -1,9 +1,8 @@
 describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 	print(os.getenv("PLUTFO"))
 
+	local match = require "luassert.match"
 	local utf = require (os.getenv("PLUTFO") == "TRUE" and "plutfo" or "utf8") or utf8
-
-	local unpack = unpack and unpack or table.unpack
 
 	local geterror = function (...)
 		return select(2, pcall(...))
