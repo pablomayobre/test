@@ -17,7 +17,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		local wrapped = wrap(...)
 
 		return function ()
-			local a, b = wrapped
+			local a, b = wrapped()
 
 			if not a then
 				error(b)
@@ -87,7 +87,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 	end)
 	
 	describe("utf8.codes", function ()
-		local iter, s = utf.codes("")
+		local iter = utf.codes("")
 		
 		it("Passing cases", function ()
 			local t = {}
@@ -96,7 +96,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 				t[position] = char
 			end
 			
-			asser.are.same(t, {[1] = 97, [2] = 98, [3] = 241, [5] = 201, [7] = 194})
+			assert.are.same(t, {[1] = 97, [2] = 98, [3] = 241, [5] = 201, [7] = 194})
 		end)
 
 		it("Invalid byte sequence", function ()
@@ -113,8 +113,8 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 
 			assert.are.same(result, expected)
 
-			local result	= #{ utf8.codepoint(s, 4, 3) }
-			assert.is.equal(result, 0)
+			local zero		= #{ utf8.codepoint(s, 4, 3) }
+			assert.is.equal(zero, 0)
 		end)
 
 		it("Invalid byte sequence", function ()

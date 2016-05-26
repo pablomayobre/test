@@ -31,7 +31,7 @@ local u = {
 --Errors not reported or reported incorrectly
 --Make sure your code works with the Native UTF-8 lib before using this one
 
-local string, table, math = require "string" require "table", require "math"
+local string, table, math = require "string", require "table", require "math"
 local unpack = unpack or table.unpack
 
 --Helper stuff!
