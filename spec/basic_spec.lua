@@ -1,12 +1,29 @@
 describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 	print(os.getenv("PLUTFO") == "TRUE" and "plutfo" or "utf8")
 
-	local match = require "luassert.match"
 	local utf = require (os.getenv("PLUTFO") == "TRUE" and "plutfo" or "utf8")
 
-	local geterror = function (...)
-		local a = select(2, pcall(...))
-		return a
+	local unpack = unpack or table.unpack
+
+	local wrap = function (func, ...)
+		local a = {...}
+		return function () return func(unpack(a)) end
+	end
+
+	local ecall = function (func, ...)
+		local a = {func(...)}
+		local b = a[1]
+		table.remove(a, 1)
+
+		if b then
+			return unpack(a)
+		else
+			error(unpack(a))
+		end
+	end
+	
+	local wcall = function (func, ...)
+		return wrap(ecall, func, ...)
 	end
 
 	describe("utf8.offset", function ()
@@ -26,29 +43,17 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			assert.is_nil(utf.offset("alo", -4))
 		end)
 
-		describe("Position out of range", function ()
-			local msg1 = geterror(utf.offset, "abc",1,  5)
-			it(msg1, function () assert.is_true(match.matches("position out of range", nil, true) (msg1)) end)
-
-			local msg2 = geterror(utf.offset, "abc",1, -4)
-			it(msg2, function () assert.is_true(match.matches("position out of range", nil, true) (msg2)) end)
-
-			local msg3 = geterror(utf.offset, "",	1,  2)
-			it(msg3, function () assert.is_true(match.matches("position out of range", nil, true) (msg3)) end)
-
-			local msg4 = geterror(utf.offset, "",	1, -1)
-			it(msg4, function () assert.is_true(match.matches("position out of range", nil, true) (msg4)) end)
+		it("Position out of range", function ()
+			assert.error_matches(wrap(utf.offset, "abc", 1,  5), "position out of range", nil, true)
+			assert.error_matches(wrap(utf.offset, "abc", 1, -4), "position out of range", nil, true)
+			assert.error_matches(wrap(utf.offset, "",	 1,  2), "position out of range", nil, true)
+			assert.error_matches(wrap(utf.offset, "",	 1, -1), "position out of range", nil, true)
 		end)
 
 		describe("Continuation byte", function ()
-			local msg1 = geterror(utf.offset, "𦧺", 1,	2)
-			it(msg1, function () assert.is_true(match.matches("continuation byte", nil, true) (msg1)) end)
-
-			local msg2 = geterror(utf.offset, "𦧺", 1,	2)
-			it(msg2, function () assert.is_true(match.matches("continuation byte", nil, true) (msg2)) end)
-
-			local msg3 = geterror(utf.offset, "\x80",	1)
-			it(msg3, function () assert.is_true(match.matches("continuation byte", nil, true) (msg3)) end)
+			assert.error_matches(wrap(utf.offset, "𦧺", 1,	2), "continuation byte", nil, true)
+			assert.error_matches(wrap(utf.offset, "𦧺", 1,	2), "continuation byte", nil, true)
+			assert.error_matches(wrap(utf.offset, "\x80",	1), "continuation byte", nil, true)
 		end)
 	end)
 	
@@ -70,25 +75,15 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		end)
 		
 		describe("Initial position out of string", function ()
-			local msg1 = geterror(utf.len, "abc", -5)
-			it(msg1, function () assert.is_true(match.matches("initial position out of string", nil, true) (msg1)) end)
+			assert.error_matches(wrap(utf.len, "abc", -5), "initial position out of string", nil, true)
 		end)
 
 		it("Invalid byte sequence", function ()
-			local b = select(2, utf.len("汉字\x80"))
-			assert.is.equal(#("汉字") + 1, b)
-
-			local c = select(2, utf.len("\xF4\x9F\xBF"))
-			assert.is.equal(1, c)
-			
-			local d = select(2, utf.len("\xF4\x9F\xBF\xBF"))
-			assert.is.equal(1, d)
-			
-			local e = select(2, utf.len("ñábceí", 2))
-			assert.is.equal(2, e)
-			
-			local a = select(2, utf.len("abc\xE3def"))
-			assert.is.equal(4, a)
+			assert.has_error(#("汉字") + 1,	wcall(utf.len, "汉字\x80"))
+			assert.has_error(1,				wcall(utf.len, "\xF4\x9F\xBF"))
+			assert.has_error(1,				wcall(utf.len, "\xF4\x9F\xBF\xBF"))
+			assert.has_error(2,				wcall(utf.len, "ñábceí", 2))
+			assert.has_error(4,				wcall(utf.len, "abc\xE3def"))
 		end)
 	end)
 	
@@ -106,8 +101,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		end)
 
 		describe("Invalid byte sequence", function ()
-			local msg1 = geterror(iter, "abñÉÂ\xff", 8)
-			it(msg1, function () assert.is_true(match.matches("invalid UTF-8 code", nil, true) (msg1)) end)
+			assert.error_matches(wrap(iter, "abñÉÂ\xff", 8), "invalid UTF-8 code", nil, true)
 		end)
 	end)
 	
@@ -125,22 +119,14 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		end)
 
 		describe("Invalid byte sequence", function ()
-			local msg1 = geterror(utf.codepoint, s, 1, #s)
-			it(msg1, function () assert.is_true(match.matches("invalid UTF-8 code", nil, true) (msg1)) end)
-			
-			local msg2 = geterror(utf.codepoint, "abc\xE3def", 1, 6)
-			it(msg1, function () assert.is_true(match.matches("invalid UTF-8 code", nil, true) (msg2)) end)
+			assert.error_matches(wrap(utf.codepoint, s, 1, #s),				"invalid UTF-8 code", nil, true)
+			assert.error_matches(wrap(utf.codepoint, "abc\xE3def", 1, 6),	"invalid UTF-8 code", nil, true)
 		end)
 
 		describe("Position out of range", function ()
-			local msg1 = geterror(utf.codepoint, s, #s + 1)
-			it(msg1, function () assert.is_true(match.matches("out of range", nil, true) (msg1)) end)
-			
-			local msg2 = geterror(utf.codepoint, s, -(#s + 1), 1)
-			it(msg2, function () assert.is_true(match.matches("out of range", nil, true) (msg2)) end)
-
-			local msg3 = geterror(utf.codepoint, s, 1, #s + 1)
-			it(msg3, function () assert.is_true(match.matches("out of range", nil, true) (msg3)) end)
+			assert.error_matches(wrap(utf.codepoint, s, #s + 1),		"out of range", nil, true)
+			assert.error_matches(wrap(utf.codepoint, s, -(#s + 1), 1),	"out of range", nil, true)
+			assert.error_matches(wrap(utf.codepoint, s, 1, #s + 1),		"out of range", nil, true)
 		end)
 	end)
 	
