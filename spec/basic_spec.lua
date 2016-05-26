@@ -5,7 +5,8 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 	local utf = require (os.getenv("PLUTFO") == "TRUE" and "plutfo" or "utf8")
 
 	local geterror = function (...)
-		return select(2, pcall(...))
+		local a = select(2, pcall(...))
+		return a
 	end
 
 	describe("utf8.offset", function ()
@@ -47,6 +48,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			it(msg2, function () assert.is_true(match.matches("continuation byte", nil, true) (msg2)) end)
 
 			local msg3 = geterror(utf.offset, "\x80",	1)
+			print("utf8.offse - continuation byte : ", msg3)
 			it(msg3, function () assert.is_true(match.matches("continuation byte", nil, true) (msg3)) end)
 		end)
 	end)
@@ -74,11 +76,20 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		end)
 
 		it("Invalid byte sequence", function ()
-			assert.is.equal(select(2, utf.len("abc\xE3def")),		4)
-			assert.is.equal(select(2, utf.len("汉字\x80")),			#("汉字") + 1)
-			assert.is.equal(select(2, utf.len("\xF4\x9F\xBF")),		1)
-			assert.is.equal(select(2, utf.len("\xF4\x9F\xBF\xBF")),	1)
-			assert.is.equal(select(2, utf.len("ñábceí", 2)),		2)
+			local a = select(2, utf.len("abc\xE3def"))
+			assert.is.equal(a, 4)
+
+			local b = select(2, utf.len("汉字\x80"))
+			assert.is.equal(b, #("汉字") + 1)
+
+			local c = select(2, utf.len("\xF4\x9F\xBF"))
+			assert.is.equal(c, 1)
+			
+			local d = select(2, utf.len("\xF4\x9F\xBF\xBF"))
+			assert.is.equal(d, 1)
+			
+			local e = select(2, utf.len("ñábceí", 2))
+			assert.is.equal(e, 2)
 		end)
 	end)
 	
@@ -97,6 +108,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 
 		describe("Invalid byte sequence", function ()
 			local msg1 = geterror(iter, "abñÉÂ\xff", 8)
+			print("utf8.codes - invalid UTF-8 code :", msg1)
 			it(msg1, function () assert.is_true(match.matches("invalid UTF-8 code", nil, true) (msg1)) end)
 		end)
 	end)
@@ -119,6 +131,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			it(msg1, function () assert.is_true(match.matches("invalid UTF-8 code", nil, true) (msg1)) end)
 			
 			local msg2 = geterror(utf.codepoint, "abc\xE3def", 1, 6)
+			print("utf8.codepoint - invalid UTF-8 code :", msg2)
 			it(msg1, function () assert.is_true(match.matches("invalid UTF-8 code", nil, true) (msg2)) end)
 		end)
 
