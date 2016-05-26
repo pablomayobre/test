@@ -5,24 +5,8 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 
 	local unpack = unpack and unpack or table.unpack
 
-	local wrap = function (func, ...)
-		local arguments = {...}
-
-		return function ()
-			return func(unpack(arguments))
-		end
-	end
-
-	local notpcall = function (...)
-		local wrapped = wrap(...)
-
-		return function ()
-			local a, b = wrapped()
-
-			if not a then
-				error(b)
-			end
-		end
+	local geterror = function (...)
+		return select(2, pcall(...))
 	end
 
 	describe("utf8.offset", function ()
@@ -43,16 +27,30 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		end)
 
 		it("Position out of range", function ()
-			assert.has_error(wrap(utf.offset, "abc",	1,  5),	"position out of range")
-			assert.has_error(wrap(utf.offset, "abc",	1, -4),	"position out of range")
-			assert.has_error(wrap(utf.offset, "",		1,  2),	"position out of range")
-			assert.has_error(wrap(utf.offset, "",		1, -1), "position out of range")
+			assert.is_true(
+				match.matches("position out of range", nil, true) (geterror(utf.offset, "abc",	1,  5))
+			)
+			assert.is_true(
+				match.matches("position out of range", nil, true) (geterror(utf.offset, "abc",	1, -4))
+			)
+			assert.is_true(
+				match.matches("position out of range", nil, true) (geterror(utf.offset, "",		1,  2))
+			)
+			assert.is_true(
+				match.matches("position out of range", nil, true) (geterror(utf.offset, "",		1, -1))
+			)
 		end)
 
 		it("Continuation byte", function ()
-			assert.has_error(wrap(utf.offset, "𦧺", 1,	2), "continuation byte")
-			assert.has_error(wrap(utf.offset, "𦧺", 1,	2), "continuation byte")
-			assert.has_error(wrap(utf.offset, "\x80",	1), "continuation byte")
+			assert.is_true(
+				match.matches("continuation byte", nil, true) (geterror(utf.offset, "𦧺", 1,	2))
+			)
+			assert.is_true(
+				match.matches("continuation byte", nil, true) (geterror(utf.offset, "𦧺", 1,	2))
+			)
+			assert.is_true(
+				match.matches("continuation byte", nil, true) (geterror(utf.offset, "\x80",	1))
+			)
 		end)
 	end)
 	
@@ -74,15 +72,17 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		end)
 		
 		it("Initial position out of string", function ()
-			assert.has_error(wrap(utf.len, "abc", -5), "bad argument #2 to 'len' (initial position out of string)")
+			assert.is_true(
+				match.matches("initial position out of string", nil, true) (geterror(utf.len, "abc", -5))
+			)
 		end)
 
 		it("Invalid byte sequence", function ()
-			assert.has_error(notpcall(utf.len, "abc\xE3def"),		4)
-			assert.has_error(notpcall(utf.len, "汉字\x80"),			#("汉字") + 1)
-			assert.has_error(notpcall(utf.len, "\xF4\x9F\xBF"),		1)
-			assert.has_error(notpcall(utf.len, "\xF4\x9F\xBF\xBF"),	1)
-			assert.has_error(notpcall(utf.len, "ñábceí", 2),		2)
+			assert.is.equal(select(2, utf.len("abc\xE3def")),			4)
+			assert.is.equal(select(2, utf.len, "汉字\x80")),			#("汉字") + 1)
+			assert.is.equal(select(2, utf.len, "\xF4\x9F\xBF")),		1)
+			assert.is.equal(select(2, utf.len, "\xF4\x9F\xBF\xBF")),	1)
+			assert.is.equal(select(2, utf.len, "ñábceí", 2)),			2)
 		end)
 	end)
 	
@@ -100,7 +100,9 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		end)
 
 		it("Invalid byte sequence", function ()
-			assert.has_error(wrap(iter, "abñÉÂ\xff", 8), "invalid UTF-8 code")
+			assert.is_true(
+				match.matches("invalid UTF-8 code", nil, true) (geterror(iter, "abñÉÂ\xff", 8))
+			)
 		end)
 	end)
 	
@@ -118,14 +120,24 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		end)
 
 		it("Invalid byte sequence", function ()
-			assert.has_error(wrap(utf.codepoint, s, 1, #s),				"invalid UTF-8 code")
-			assert.has_error(wrap(utf.codepoint, "abc\xE3def", 1, 6),	"invalid UTF-8 code")
+			assert.is_true(
+				match.matches("invalid UTF-8 code", nil, true) (geterror(utf.codepoint, s, 1, #s))
+			)
+			assert.is_true(
+				match.matches("invalid UTF-8 code", nil, true) (geterror(utf.codepoint, "abc\xE3def", 1, 6))
+			)
 		end)
 
 		it("Position out of range", function ()
-			assert.has_error(wrap(utf.codepoint, s, #s + 1			  ), 	"out of range")
-			assert.has_error(wrap(utf.codepoint, s, -(#s + 1),		 1), 	"out of range")
-			assert.has_error(wrap(utf.codepoint, s, 1,			#s + 1),	"out of range")
+			assert.is_true(
+				match.matches("out of range", nil, true) (geterror(utf.codepoint, s, #s + 1			  ))
+			)
+			assert.is_true(
+				match.matches("out of range", nil, true) (geterror(utf.codepoint, s, -(#s + 1),		 1))
+			)
+			assert.is_true(
+				match.matches("out of range", nil, true) (geterror(utf.codepoint, s, 1,			#s + 1))
+			)
 		end)
 	end)
 	
