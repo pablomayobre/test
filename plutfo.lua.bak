@@ -1,4 +1,4 @@
-local utf = {
+local u = {
 	_VERSION		= "plutfo 0.1.0",
 	_DESCRIPTION	= "Pure Lua UTF-8 operations is a library compatible with Lua 5.3 UTF-8 module",
 	_URL			= "https://www.github.com/Cations/plutfo",
@@ -131,7 +131,7 @@ local funcNOffset = function (u, c, v, ret)
 end
 
 --Actual UTF-8 functions
-utf.char = function (...)
+u.char = function (...)
 	local ret = {}
 
 	for i=1, select("#", ...) do
@@ -142,9 +142,9 @@ utf.char = function (...)
 	return table.concat(ret, "")
 end
 
-utf.charpattern = "[\0-\x7f\xc2-\xf4][\x80-\xbf]*"
+u.charpattern = "[\0-\x7f\xc2-\xf4][\x80-\xbf]*"
 
-utf.codes = function (s)
+u.codes = function (s)
 	local iter, st, val = iterator(s)
 	
 	return function (...)
@@ -153,7 +153,7 @@ utf.codes = function (s)
 	end, st, val
 end
 
-utf.codepoint = function (s, i, j)
+u.codepoint = function (s, i, j)
 	local len = string.len(s)
 
 	i = i and (i < 0 and len + 1 + i or i) or 1
@@ -168,7 +168,7 @@ utf.codepoint = function (s, i, j)
 	return unpack(ret)
 end
 
-utf.len = function (s, i, j)
+u.len = function (s, i, j)
 	local len = string.len(s)
 
 	i = i and (i < 0 and len + 1 + i or i) or 1
@@ -183,10 +183,10 @@ utf.len = function (s, i, j)
 	return ret[1]
 end
 
-utf.offset = function (s, n, i)
+u.offset = function (s, n, i)
 	local len = string.len(s)
 
-	--local char = n
+	local char = n
 
 	if n < 0 then
 		local j = i or len + 1
@@ -196,13 +196,15 @@ utf.offset = function (s, n, i)
 
 		return ret[#ret + n]
 	else
-		local j = i or 1
+		local i = i or 1
 		local ret = {n, 0, nil}
 
-		loop(s, funcOffset, j, len + 1, ret)
+		loop(s, funcOffset, i, len + 1, ret)
 
 		return ret[2]
 	end
+	
+	return nil
 end
 
-return utf
+return u
