@@ -25,7 +25,8 @@ return {
   -- (exclude overrules include, do not include
   -- the .lua extension)
   include = {
-
+	"/plutfo$",
+	"/plutfo/.+$"
   },
 
   -- Patterns for files to exclude when reporting
