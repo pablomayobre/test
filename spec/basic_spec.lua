@@ -16,7 +16,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 		table.remove(a, 1)
 
 		if b then
-			error("Returned correctly: "..b..", "..table.concat(a, ", "))
+			error("Returned correctly: "..b..(#a > 0 and (", "..table.concat(a, ", ")) or ""))
 		else
 			error(table.concat(a, ", "))
 		end
@@ -50,7 +50,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			assert.error_matches(wcall(utf.offset, "",	 1, -1),  "position out of range", nil, true)
 		end)
 
-		describe("Continuation byte", function ()
+		it("Continuation byte", function ()
 			assert.error_matches(wcall(utf.offset, "𦧺", 1,	2), "continuation byte", nil, true)
 			assert.error_matches(wcall(utf.offset, "𦧺", 1,	2), "continuation byte", nil, true)
 			assert.error_matches(wcall(utf.offset, "\x80",	1), "continuation byte", nil, true)
@@ -74,7 +74,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			assert.is.equal(utf.len("abc", -1, 1), 0)
 		end)
 		
-		describe("Initial position out of string", function ()
+		it("Initial position out of string", function ()
 			assert.error_matches(wcall(utf.len, "abc", -5), "initial position out of string", nil, true)
 		end)
 
@@ -100,7 +100,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			assert.are.same({[1] = 97, [2] = 98, [3] = 241, [5] = 201, [7] = 194}, t)
 		end)
 
-		describe("Invalid byte sequence", function ()
+		it("Invalid byte sequence", function ()
 			assert.error_matches(wcall(iter, "abñÉÂ\xff", 8), "invalid UTF-8 code", nil, true)
 		end)
 	end)
@@ -118,12 +118,12 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			assert.is.equal(0, zero)
 		end)
 
-		describe("Invalid byte sequence", function ()
-			assert.error_matches(wcall(utf.codepoint, s, 1, #s),				"invalid UTF-8 code", nil, true)
+		it("Invalid byte sequence", function ()
+			assert.error_matches(wcall(utf.codepoint, s, 1, #s),			"invalid UTF-8 code", nil, true)
 			assert.error_matches(wcall(utf.codepoint, "abc\xE3def", 1, 6),	"invalid UTF-8 code", nil, true)
 		end)
 
-		describe("Position out of range", function ()
+		it("Position out of range", function ()
 			assert.error_matches(wcall(utf.codepoint, s, #s + 1),		"out of range", nil, true)
 			assert.error_matches(wcall(utf.codepoint, s, -(#s + 1), 1),	"out of range", nil, true)
 			assert.error_matches(wcall(utf.codepoint, s, 1, #s + 1),		"out of range", nil, true)
