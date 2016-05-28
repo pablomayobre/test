@@ -92,8 +92,8 @@ local codepoint = function (char)
 	error ("UTF-8 sequences can contain up to 4 bytes", 2)
 end
 
-local iterator = function (state, value)
-	local value = tonumber(value) or 0
+local iterator = function (state, v)
+	local value = tonumber(v) or 0
 
 	local finish = string.match(state, "[\0-\x7f\xc2-\xf4][\x80-\xbf]*()", value)
 	if finish == string.len(state) + 1 then return end
@@ -161,11 +161,11 @@ end
 
 utf.charpattern = "[\0-\x7f\xc2-\xf4][\x80-\xbf]*"
 
-utf.codes = function (s)
+utf.codes = function (state)
 	return function (...)
 		local position, char = iterator(...)
 		return position, char and codepoint(char)
-	end, state, val
+	end, state, 0
 end
 
 utf.codepoint = function (s, i, j)
