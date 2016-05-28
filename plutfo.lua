@@ -35,6 +35,13 @@ local string, table, math = require "string", require "table", require "math"
 local unpack = unpack or table.unpack
 
 --Helper stuff!
+local pattern 
+if tonumber(string.match(_VERSION,"Lua 5%.(.+)")) <= 1 then
+	pattern = "[%z\x01-\x7F\xC2-\xF4][\x80-\xBF]*"
+else
+	pattern = "[\0-\x7F\xC2-\xF4][\x80-\xBF]*"
+end
+
 local character = function (char)
 	if char <= 0x7f then return string.char(char) end
 
@@ -95,10 +102,10 @@ end
 local iterator = function (state, v)
 	local value = tonumber(v) or 0
 
-	local finish = string.match(state, "[\0-\x7f\xc2-\xf4][\x80-\xbf]*()", value)
+	local finish = string.match(state, "("..pattern..")()", value)
 	if finish == string.len(state) + 1 then return end
 
-	local position, char, offset = string.match(state, "()([\0-\x7f\xc2-\xf4][\x80-\xbf]*)", value + 1)
+	local position, char, offset = string.match(state, "()("..pattern..")", value + 1)
 
 	if value ~= 0 then
 		if position ~= finish then error("invalid UTF-8 code") end
@@ -159,7 +166,7 @@ utf.char = function (...)
 	return table.concat(ret, "")
 end
 
-utf.charpattern = "[\0-\x7f\xc2-\xf4][\x80-\xbf]*"
+utf.charpattern = pattern
 
 utf.codes = function (state)
 	return function (...)
