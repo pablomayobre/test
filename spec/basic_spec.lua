@@ -69,7 +69,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			assert.is.equal(utf.len("ñábceí", -5, 6),	2)
 		end)
 		
-		it("Null range", function ()
+		it("Null range", function () --GOOD
 			assert.is.equal(utf.len("abc", 4), 0)
 			assert.is.equal(utf.len("abc", -1, 1), 0)
 		end)
@@ -100,7 +100,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			assert.are.same({[1] = 97, [2] = 98, [3] = 241, [5] = 201, [7] = 194}, t)
 		end)
 
-		it("Invalid byte sequence", function ()
+		it("Invalid byte sequence", function () --GOOD
 			assert.error_matches(wcall(iter, "abñÉÂ\xff", 8), "invalid UTF-8 code", nil, true)
 		end)
 	end)
@@ -139,7 +139,7 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 			assert.is.equal(0x10FFFF, utf.codepoint(utf.char(0x10FFFF)))
 		end)
 		
-		it("Out of range", function ()
+		it("Out of range", function () --GOOD
 			assert.error_matches(wcall(utf.char, 0x10FFFF + 1), "value out of range", nil, true)
 		end)
 	end)

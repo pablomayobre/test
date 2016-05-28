@@ -117,7 +117,7 @@ local iterator = function (state, v)
 end
 
 local loop = function (s, f, i, j, ...)
-	for u, c, v in iterator, s, 0 do
+	for u, c, v in iterator, s, i do
 		if v > i then
 			if u > j then
 				break
