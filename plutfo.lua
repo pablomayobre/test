@@ -41,14 +41,14 @@ local character = function (char)
 	if (char <= 0x7ff) then
 		local a = 0xc0 + math.floor(char / 0x40);
 		local b = 0x80 + (char % 0x40);
-		return string.char(a, b);
+		return true, string.char(a, b);
 	end
 
 	if (char <= 0xffff) then
 		local a = 0xe0 +  math.floor(char / 0x1000);
 		local b = 0x80 + (math.floor(char / 0x40) % 0x40);
 		local c = 0x80 + (char % 0x40);
-		return string.char(a, b, c);
+		return true, string.char(a, b, c);
 	end
 
 	if (char <= 0x10ffff) then
@@ -61,10 +61,8 @@ local character = function (char)
 		code	= math.floor(code / 0x40)  
 		local d	= 0xf0 + code;
 
-		return string.char(a, b, c, d);
+		return true, string.char(a, b, c, d);
 	end
-
-	error 'Unicode cannot be greater than U+10FFFF'
 end
 
 local sh6, sh12, sh18 = 2^6, 2^12, 2^18
@@ -94,10 +92,25 @@ local codepoint = function (char)
 	error ("UTF-8 sequences can contain up to 4 bytes", 2)
 end
 
-local iterator = function (s) return string.gmatch(s, "()([\0-\x7f\xc2-\xf4][\x80-\xbf]*)()") end
+local iterator = function (state, value)
+	local value = tonumber(value) or 0
+
+	local finish = string.match(state, "[\0-\x7f\xc2-\xf4][\x80-\xbf]*()", value)
+	if finish == string.len(state) + 1 then return end
+
+	local position, char, offset = string.match(state, "()([\0-\x7f\xc2-\xf4][\x80-\xbf]*)", value + 1)
+
+	if value ~= 0 then
+		if position ~= finish then error("invalid UTF-8 code") end
+	end
+
+	if char and position and offset then
+		return position, char, offset
+	end
+end
 
 local loop = function (s, f, i, j, ...)
-	for u, c, v in iterator(s) do
+	for u, c, v in iterator, s, 0 do
 		if v > i then
 			if u > j then
 				break
@@ -135,8 +148,12 @@ utf.char = function (...)
 	local ret = {}
 
 	for i=1, select("#", ...) do
-		local char = character(select(i, ...))
-		table.insert(ret, char)
+		local ok, char = character(select(i, ...))
+		if ok then
+			table.insert(ret, char)
+		else
+			error("bad argument #"..i.." to 'char' (value out of range)", 2)
+		end
 	end
 	
 	return table.concat(ret, "")
@@ -145,12 +162,10 @@ end
 utf.charpattern = "[\0-\x7f\xc2-\xf4][\x80-\xbf]*"
 
 utf.codes = function (s)
-	local iter, st, val = iterator(s)
-	
 	return function (...)
-		local p, c = iter(...)
-		return p, c and codepoint(c)
-	end, st, val
+		local position, char = iterator(...)
+		return position, char and codepoint(char)
+	end, state, val
 end
 
 utf.codepoint = function (s, i, j)

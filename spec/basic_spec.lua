@@ -138,5 +138,9 @@ describe("Plutfo and UTF-8 Lua Library unit testing framework", function ()
 
 			assert.is.equal(utf.codepoint(utf.char(0x10FFFF)), 0x10FFFF)
 		end)
+		
+		it("Out of range", function ()
+			assert.error_matches(wrap(utf.char, 0x10FFFF + 1), "value out of range", nil, true)
+		end)
 	end)
 end)
