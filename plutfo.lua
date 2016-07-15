@@ -64,13 +64,13 @@ local character = function (char)
 
 	if (char <= 0x10ffff) then
 		local code = char
-		local a	= 0x80 + (code % 0x40)
-		code	= math.floor(code / 0x40)
-		local b	= 0x80 + (code % 0x40)
+		local d	= 0x80 + (code % 0x40)
 		code	= math.floor(code / 0x40)
 		local c	= 0x80 + (code % 0x40)
+		code	= math.floor(code / 0x40)
+		local b	= 0x80 + (code % 0x40)
 		code	= math.floor(code / 0x40)  
-		local d	= 0xf0 + code
+		local a	= 0xf0 + code
 
 		return true, string.char(a, b, c, d)
 	end
