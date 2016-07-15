@@ -43,32 +43,36 @@ else
 end
 
 local character = function (char)
-	if char <= 0x7f then return string.char(char) end
+	if char <= 0x7f then
+		return true, string.char(char)
+	end
 
 	if (char <= 0x7ff) then
-		local a = 0xc0 + math.floor(char / 0x40);
-		local b = 0x80 + (char % 0x40);
-		return true, string.char(a, b);
+		local a = 0xc0 + math.floor(char / 0x40)
+		local b = 0x80 + (char % 0x40)
+
+		return true, string.char(a, b)
 	end
 
 	if (char <= 0xffff) then
-		local a = 0xe0 +  math.floor(char / 0x1000);
-		local b = 0x80 + (math.floor(char / 0x40) % 0x40);
-		local c = 0x80 + (char % 0x40);
-		return true, string.char(a, b, c);
+		local a = 0xe0 +  math.floor(char / 0x1000)
+		local b = 0x80 + (math.floor(char / 0x40) % 0x40)
+		local c = 0x80 + (char % 0x40)
+
+		return true, string.char(a, b, c)
 	end
 
 	if (char <= 0x10ffff) then
 		local code = char
-		local a	= 0x80 + (code % 0x40);
+		local a	= 0x80 + (code % 0x40)
 		code	= math.floor(code / 0x40)
-		local b	= 0x80 + (code % 0x40);
+		local b	= 0x80 + (code % 0x40)
 		code	= math.floor(code / 0x40)
-		local c	= 0x80 + (code % 0x40);
+		local c	= 0x80 + (code % 0x40)
 		code	= math.floor(code / 0x40)  
-		local d	= 0xf0 + code;
+		local d	= 0xf0 + code
 
-		return true, string.char(a, b, c, d);
+		return true, string.char(a, b, c, d)
 	end
 end
 
